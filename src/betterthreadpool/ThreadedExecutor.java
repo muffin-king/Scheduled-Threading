@@ -2,32 +2,31 @@ package betterthreadpool;
 
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.Queue;
 import java.util.concurrent.*;
 
 /**
  * A class used for instantiating a number of {@link Thread Threads} that
  * can be used to execute {@link Runnable} tasks, immediately, at a delay, or repeatedly.
  *
- * A {@code ThreadPool} works by using a {@link Deque} to store {@link ThreadPoolTask}s for execution. Each thread in the pool attempts
+ * A {@code ThreadPool} works by using a {@link Deque} to store {@link ExecutorTask}s for execution. Each thread in the pool attempts
  * to grab a task from the head of the queue every loop. If there is an available task that has met the requirements to be executed (the task's delay
  * and the time before a repeated execution has also elapsed, and the task is not cancelled), then the task is executed by the first thread to
  * acquire it, without guarantees as to which thread acquires it. If the task at the head of the queue does not meet the requirements for execution,
  * then the task is placed back into the back of the queue.
  */
-public class ThreadPool {
+public class ThreadedExecutor {
     private Executor[] threads;
-    private final Deque<ThreadPoolTask> queue;
+    private final Deque<ExecutorTask> queue;
     private boolean isClosed;
     private ThreadFactory factory;
     private static final ThreadFactory DEFAULT_FACTORY = new DefaultThreadFactory();
-    private static final ThreadPoolTask EMPTY_TASK = new ThreadPoolTask();
+    private static final ExecutorTask EMPTY_TASK = new ExecutorTask();
 
     /**
      * Constructs a new {@code ScheduledThreadPool}.
      * @param threadCount The number of threadCount to instantiate the pool with
      */
-    public ThreadPool(int threadCount) {
+    public ThreadedExecutor(int threadCount) {
         isClosed = false;
         threads = new Executor[threadCount];
         queue = new ConcurrentLinkedDeque<>();
@@ -40,7 +39,7 @@ public class ThreadPool {
      * @param threadCount The number of threadCount to instantiate the pool with
      * @param factory The {@code ThreadFactory} to use when instantiating threads
      */
-    public ThreadPool(int threadCount, ThreadFactory factory) {
+    public ThreadedExecutor(int threadCount, ThreadFactory factory) {
         if(factory == null)
             throw new NullPointerException();
         isClosed = false;
@@ -58,12 +57,12 @@ public class ThreadPool {
      * @param unit The {@code TimeUnit} of the interval and delay
      * @return The {@code ThreadPoolTask} created
      */
-    public ThreadPoolTask scheduleTask(Runnable task, long interval, long delay, TimeUnit unit) {
+    public ExecutorTask scheduleTask(Runnable task, long interval, long delay, TimeUnit unit) {
         if(task == null || unit == null)
             throw new NullPointerException();
-        ThreadPoolTask threadPoolTask = new ThreadPoolTask(task, interval, delay, unit);
-        queue.add(threadPoolTask);
-        return threadPoolTask;
+        ExecutorTask executorTask = new ExecutorTask(task, interval, delay, unit);
+        queue.add(executorTask);
+        return executorTask;
     }
 
     /**
@@ -73,12 +72,12 @@ public class ThreadPool {
      * @param unit The {@code TimeUnit} of the interval and delay
      * @return The {@code ThreadPoolTask} created
      */
-    public ThreadPoolTask scheduleTask(Runnable task, long delay, TimeUnit unit) {
+    public ExecutorTask scheduleTask(Runnable task, long delay, TimeUnit unit) {
         if(task == null || unit == null)
             throw new NullPointerException();
-        ThreadPoolTask threadPoolTask = new ThreadPoolTask(task, delay, unit);
-        queue.add(threadPoolTask);
-        return threadPoolTask;
+        ExecutorTask executorTask = new ExecutorTask(task, delay, unit);
+        queue.add(executorTask);
+        return executorTask;
     }
 
     /**
@@ -86,12 +85,12 @@ public class ThreadPool {
      * @param task The {@code Runnable} to execute
      * @return The {@code ThreadPoolTask} created
      */
-    public ThreadPoolTask submit(Runnable task) {
+    public ExecutorTask submit(Runnable task) {
         if(task == null)
             throw new NullPointerException();
-        ThreadPoolTask threadPoolTask = new ThreadPoolTask(task, 0, TimeUnit.NANOSECONDS);
-        queue.add(threadPoolTask);
-        return threadPoolTask;
+        ExecutorTask executorTask = new ExecutorTask(task, 0, TimeUnit.NANOSECONDS);
+        queue.add(executorTask);
+        return executorTask;
     }
 
     /**
@@ -99,12 +98,12 @@ public class ThreadPool {
      * @param task The {@code Runnable} to execute
      * @return The {@code ThreadPoolTask} created
      */
-    public ThreadPoolTask execute(Runnable task) {
+    public ExecutorTask execute(Runnable task) {
         if(task == null)
             throw new NullPointerException();
-        ThreadPoolTask threadPoolTask = new ThreadPoolTask(task, 0, TimeUnit.NANOSECONDS);
-        queue.addFirst(threadPoolTask);
-        return threadPoolTask;
+        ExecutorTask executorTask = new ExecutorTask(task, 0, TimeUnit.NANOSECONDS);
+        queue.addFirst(executorTask);
+        return executorTask;
     }
 
     private void populateThreads() {
@@ -188,12 +187,12 @@ public class ThreadPool {
         @Override
         public void run() {
             while(!closed) {
-                ThreadPoolTask threadPoolTask = queue.poll();
-                if (threadPoolTask != null) {
-                    if (threadPoolTask.isExecutable())
-                        threadPoolTask.execute();
-                    if (threadPoolTask.isRepeating())
-                        queue.add(threadPoolTask);
+                ExecutorTask executorTask = queue.poll();
+                if (executorTask != null) {
+                    if (executorTask.isExecutable())
+                        executorTask.execute();
+                    if (executorTask.isRepeating())
+                        queue.add(executorTask);
                 }
             }
         }

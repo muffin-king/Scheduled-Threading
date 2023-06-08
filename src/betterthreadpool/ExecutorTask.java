@@ -4,9 +4,9 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@code betterthreadpool.ThreadPoolTask} is a class used to contain {@code Runnable} code for scheduled execution in a {@link ThreadPool}.
+ * {@code ExecutorTask} is a class used to contain {@code Runnable} code for scheduled execution in a {@link ThreadedExecutor}.
  */
-public class ThreadPoolTask {
+public class ExecutorTask {
     private final long interval;
     private final long delay;
     private long originTime;
@@ -15,7 +15,7 @@ public class ThreadPoolTask {
     private final boolean isRepeating;
     private boolean isExecuting;
 
-    protected ThreadPoolTask(Runnable task, long interval, long delay, TimeUnit unit) {
+    protected ExecutorTask(Runnable task, long interval, long delay, TimeUnit unit) {
         this.interval = unit.toNanos(interval);
         this.delay = unit.toNanos(delay);
         originTime = System.nanoTime();
@@ -24,7 +24,7 @@ public class ThreadPoolTask {
         isExecuting = false;
     }
 
-    protected ThreadPoolTask(Runnable task, long delay, TimeUnit unit) {
+    protected ExecutorTask(Runnable task, long delay, TimeUnit unit) {
         this.interval = -1;
         this.delay = unit.toNanos(delay);
         originTime = System.nanoTime();
@@ -33,7 +33,7 @@ public class ThreadPoolTask {
         isExecuting = false;
     }
 
-    protected ThreadPoolTask() {
+    protected ExecutorTask() {
         this.interval = -1;
         this.delay = -1;
         originTime = -1;
