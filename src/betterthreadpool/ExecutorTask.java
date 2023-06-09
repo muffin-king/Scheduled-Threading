@@ -4,7 +4,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@code ExecutorTask} is a class used to contain {@code Runnable} code for scheduled execution in a {@link ThreadedExecutor}.
+ * {@code betterthreadpool.ThreadPoolTask} is a class used to contain {@code Runnable} code for scheduled execution in a {@link CachedThreadedExecutor}.
  */
 public class ExecutorTask {
     private final long interval;
